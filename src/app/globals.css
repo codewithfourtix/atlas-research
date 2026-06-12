@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=Outfit:wght@100..900&display=swap');
 
 * {
   box-sizing: border-box;
@@ -7,18 +7,102 @@
 }
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --border: #222222;
-  --text: #e5e5e5;
-  --muted: #555555;
+  --bg: #030303;
+  --surface-raw: 10, 10, 12;
+  --surface: rgba(var(--surface-raw), 0.7);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --border: #18181b;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  
+  /* HSL Tailored Colors */
   --accent: #00ff88;
-  --accent-dim: #00ff8820;
+  --accent-rgb: 0, 255, 136;
+  --accent-dim: rgba(var(--accent-rgb), 0.1);
+  --blue: #3b82f6;
+  --gold: #f59e0b;
+  --purple: #8b5cf6;
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(var(--accent-rgb), 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 40%);
   color: var(--text);
-  font-family: 'Geist Mono', 'Fira Code', 'Courier New', monospace;
+  font-family: 'Geist', 'Outfit', system-ui, sans-serif;
   min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Micro-Animations & Glows */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.2);
+  }
+}
+
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-item {
+  animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.glow-card:focus-within {
+  animation: glow-pulse 3s infinite;
+  border-color: rgba(var(--accent-rgb), 0.3) !important;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--surface);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--surface-border);
+}
+
+.glass-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--surface-border);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-input:focus {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.2);
 }

@@ -12,11 +12,11 @@ type Step = {
 type Status = 'idle' | 'running' | 'completed' | 'failed'
 
 const TYPE_LABELS: Record<string, string> = {
-  planning: '[ PLAN ]',
-  searching: '[ SEARCH ]',
-  synthesizing: '[ SYNTH ]',
-  writing: '[ WRITE ]',
-  done: '[ DONE ]',
+  planning: 'PLAN',
+  searching: 'SEARCH',
+  synthesizing: 'SYNTH',
+  writing: 'WRITE',
+  done: 'DONE',
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -53,7 +53,7 @@ export default function Home() {
 
       setSessionId(data.sessionId)
 
-      // poll for updates every 2s (realtime subscription comes later)
+      // poll for updates every 2s
       const interval = setInterval(async () => {
         const poll = await fetch(`/api/research/${data.sessionId}`)
         const result = await poll.json()
@@ -76,36 +76,109 @@ export default function Home() {
     }
   }
 
+  // Helper to format timestamps for log feed
+  const formatLogTime = (isoString?: string) => {
+    if (!isoString) return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  }
+
   return (
-    <main style={{
-      maxWidth: '780px',
-      margin: '0 auto',
-      padding: '60px 24px',
-    }}>
-
-      {/* header */}
-      <div style={{ marginBottom: '48px' }}>
-        <div style={{ color: 'var(--accent)', fontSize: '11px', letterSpacing: '4px', marginBottom: '12px' }}>
-          ATLAS RESEARCH
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      
+      {/* Top Navigation Bar */}
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 32px',
+        borderBottom: '1px solid var(--surface-border)',
+        backdropFilter: 'blur(10px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        background: 'rgba(3, 3, 3, 0.7)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{
+            fontSize: '14px',
+            fontWeight: 800,
+            letterSpacing: '1.5px',
+            color: 'var(--text)',
+            fontFamily: "'Geist Mono', monospace"
+          }}>
+            KERNEL <span style={{ color: 'var(--accent)' }}>//</span> ATLAS
+          </span>
+          <span style={{
+            fontSize: '10px',
+            background: 'var(--surface-border)',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            color: 'var(--muted)',
+            fontFamily: "'Geist Mono', monospace"
+          }}>
+            v1.2.0
+          </span>
         </div>
-        <h1 style={{ fontSize: '28px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.3 }}>
-          Deep Research Agent
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '8px' }}>
-          powered by deepagents + tavily
-        </p>
-      </div>
 
-      {/* input */}
-      <div style={{ marginBottom: '40px' }}>
-        <div style={{
-          border: '1px solid var(--border)',
-          background: 'var(--surface)',
-          borderRadius: '6px',
-          padding: '16px',
-          display: 'flex',
-          gap: '12px',
-          alignItems: 'flex-end',
+        {/* Live Status indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+          <span style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: status === 'running' ? 'var(--accent)' : status === 'failed' ? '#ff4444' : 'var(--muted)',
+            boxShadow: status === 'running' ? '0 0 8px var(--accent)' : 'none',
+            display: 'inline-block'
+          }} />
+          <span style={{ color: 'var(--muted)', fontFamily: "'Geist Mono', monospace" }}>
+            {status === 'running' ? 'AGENT_BUSY' : status === 'completed' ? 'AGENT_IDLE' : 'AGENT_OFFLINE'}
+          </span>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main style={{
+        flex: 1,
+        maxWidth: '920px',
+        width: '100%',
+        margin: '0 auto',
+        padding: '60px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '40px'
+      }}>
+
+        {/* Hero Section */}
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+          <h1 style={{ 
+            fontSize: '42px', 
+            fontWeight: 700, 
+            letterSpacing: '-1.5px',
+            backgroundImage: 'linear-gradient(180deg, #ffffff 0%, var(--muted) 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            lineHeight: 1.15
+          }}>
+            Autonomous Knowledge Retrieval
+          </h1>
+          <p style={{ 
+            color: 'var(--muted)', 
+            fontSize: '15px', 
+            marginTop: '12px',
+            maxWidth: '520px',
+            margin: '12px auto 0',
+            lineHeight: 1.5
+          }}>
+            Stateful research agent utilizing deep planning, sequential web search synthesis, and cited intelligence reports.
+          </p>
+        </div>
+
+        {/* Query Input Card */}
+        <div className="glow-card glass-panel" style={{
+          borderRadius: '12px',
+          padding: '20px',
+          transition: 'all 0.3s ease-in-out',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
         }}>
           <textarea
             value={query}
@@ -116,191 +189,312 @@ export default function Home() {
                 handleSubmit()
               }
             }}
-            placeholder="What do you want to research?"
+            placeholder="Type your research prompt... (e.g. Current status of AI in drug discovery)"
             rows={3}
             disabled={status === 'running'}
             style={{
-              flex: 1,
+              width: '100%',
               background: 'transparent',
               border: 'none',
               outline: 'none',
               color: 'var(--text)',
-              fontSize: '14px',
+              fontSize: '15px',
               fontFamily: 'inherit',
               resize: 'none',
               lineHeight: 1.6,
             }}
           />
-          <button
-            onClick={handleSubmit}
-            disabled={!query.trim() || status === 'running'}
-            style={{
-              background: status === 'running' ? 'transparent' : 'var(--accent)',
-              color: status === 'running' ? 'var(--accent)' : '#0a0a0a',
-              border: status === 'running' ? '1px solid var(--accent)' : 'none',
-              borderRadius: '4px',
-              padding: '8px 20px',
-              fontSize: '12px',
-              fontFamily: 'inherit',
-              fontWeight: 600,
-              cursor: status === 'running' ? 'not-allowed' : 'pointer',
-              letterSpacing: '1px',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s',
-            }}
-          >
-            {status === 'running' ? 'RUNNING...' : 'RUN →'}
-          </button>
-        </div>
-        <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '8px', paddingLeft: '4px' }}>
-          shift+enter for newline · enter to run
-        </p>
-      </div>
 
-      {/* steps feed */}
-      {steps.length > 0 && (
-        <div style={{ marginBottom: '40px' }}>
-          <div style={{ color: 'var(--muted)', fontSize: '11px', letterSpacing: '2px', marginBottom: '16px' }}>
-            AGENT LOG
-          </div>
           <div style={{
-            border: '1px solid var(--border)',
-            borderRadius: '6px',
-            overflow: 'hidden',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '16px',
+            borderTop: '1px solid rgba(255,255,255,0.04)',
+            paddingTop: '16px'
           }}>
-            {steps.map((step, i) => (
-              <div key={step.id} style={{
-                padding: '12px 16px',
-                borderBottom: i < steps.length - 1 ? '1px solid var(--border)' : 'none',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'flex-start',
+            <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'var(--muted)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <kbd style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  padding: '2px 5px',
+                  borderRadius: '3px',
+                  border: '1px solid rgba(255,255,255,0.1)'
+                }}>Enter</kbd> to run
+              </span>
+              <span>·</span>
+              <span>Searches multiple sources</span>
+            </div>
+
+            <button
+              onClick={handleSubmit}
+              disabled={!query.trim() || status === 'running'}
+              style={{
+                background: status === 'running' ? 'transparent' : 'var(--text)',
+                color: status === 'running' ? 'var(--muted)' : '#030303',
+                border: status === 'running' ? '1px solid var(--surface-border)' : 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontSize: '12px',
+                fontFamily: "'Geist Mono', monospace",
+                fontWeight: 700,
+                cursor: status === 'running' ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: status === 'running' ? 'none' : '0 4px 12px rgba(255,255,255,0.1)'
+              }}
+            >
+              {status === 'running' ? 'STREAMING...' : 'RUN AGENT'}
+            </button>
+          </div>
+        </div>
+
+        {/* Live Logs Terminal Feed */}
+        {steps.length > 0 && (
+          <div className="fade-in-item" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              padding: '0 4px'
+            }}>
+              <span style={{ 
+                color: 'var(--muted)', 
+                fontSize: '11px', 
+                fontFamily: "'Geist Mono', monospace",
+                letterSpacing: '1px'
               }}>
+                STREAM OUTPUT &mdash; EXECUTION FEED
+              </span>
+              {status === 'running' && (
                 <span style={{
-                  color: TYPE_COLORS[step.step_type] || 'var(--muted)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  letterSpacing: '1px',
-                  whiteSpace: 'nowrap',
-                  marginTop: '2px',
-                  minWidth: '80px',
+                  fontSize: '11px',
+                  color: 'var(--accent)',
+                  fontFamily: "'Geist Mono', monospace"
                 }}>
-                  {TYPE_LABELS[step.step_type] || `[ ${step.step_type.toUpperCase()} ]`}
+                  ACTIVE POLLING
                 </span>
-                <span style={{ color: 'var(--text)', fontSize: '13px', lineHeight: 1.6 }}>
-                  {step.content}
-                </span>
-              </div>
-            ))}
-            {status === 'running' && (
+              )}
+            </div>
+
+            {/* MacOS-style Terminal */}
+            <div className="glass-panel" style={{
+              borderRadius: '10px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            }}>
+              {/* Window Controls */}
               <div style={{
-                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.03)',
+                padding: '10px 16px',
                 display: 'flex',
-                gap: '8px',
                 alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(255,255,255,0.05)'
               }}>
-                <span style={{ color: 'var(--accent)', fontSize: '13px', animation: 'pulse 1.5s infinite' }}>
-                  ▋
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff5f56', display: 'inline-block' }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ffbd2e', display: 'inline-block' }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#27c93f', display: 'inline-block' }} />
+                </div>
+                <span style={{ 
+                  fontSize: '11px', 
+                  color: 'var(--muted)', 
+                  fontFamily: "'Geist Mono', monospace"
+                }}>
+                  agent_harness.sh
                 </span>
-                <span style={{ color: 'var(--muted)', fontSize: '12px' }}>agent working...</span>
+                <span style={{ width: '40px' }} />
               </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* final report */}
-      {status === 'completed' && report && (
-        <div>
-          <div style={{ color: 'var(--muted)', fontSize: '11px', letterSpacing: '2px', marginBottom: '16px' }}>
-            FINAL REPORT
+              {/* Terminal Logs Body */}
+              <div style={{
+                padding: '20px',
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: '13px',
+                lineHeight: 1.7,
+                color: 'rgba(255,255,255,0.85)',
+                maxHeight: '400px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                {steps.map((step) => (
+                  <div key={step.id} className="fade-in-item" style={{ 
+                    display: 'flex', 
+                    gap: '12px', 
+                    alignItems: 'flex-start'
+                  }}>
+                    <span style={{ color: 'rgba(255,255,255,0.25)', userSelect: 'none' }}>
+                      [{formatLogTime(step.created_at)}]
+                    </span>
+                    <span style={{
+                      color: TYPE_COLORS[step.step_type] || 'var(--muted)',
+                      fontWeight: 700,
+                      minWidth: '70px',
+                      display: 'inline-block'
+                    }}>
+                      {TYPE_LABELS[step.step_type] || step.step_type.toUpperCase()}
+                    </span>
+                    <span style={{ flex: 1, color: '#e4e4e7' }}>
+                      {step.content}
+                    </span>
+                  </div>
+                ))}
+
+                {status === 'running' && (
+                  <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    alignItems: 'center',
+                    marginTop: '8px'
+                  }}>
+                    <span style={{ 
+                      color: 'var(--accent)', 
+                      animation: 'terminal-blink 1s infinite',
+                      fontWeight: 800
+                    }}>
+                      ▋
+                    </span>
+                    <span style={{ color: 'var(--muted)', fontSize: '12px' }}>agent waiting for response...</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <div style={{
-            border: '1px solid var(--accent)',
-            borderRadius: '6px',
-            padding: '24px',
-            background: 'var(--accent-dim)',
+        )}
+
+        {/* Final Synthesized Report */}
+        {status === 'completed' && report && (
+          <div className="fade-in-item" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ 
+              color: 'var(--muted)', 
+              fontSize: '11px', 
+              fontFamily: "'Geist Mono', monospace",
+              letterSpacing: '1px'
+            }}>
+              RESEARCH ANALYSIS OUTPUT &mdash; SYNTHESIZED REPORT
+            </div>
+
+            <div className="glass-panel" style={{
+              borderRadius: '12px',
+              padding: '32px',
+              lineHeight: 1.8,
+              fontSize: '15px',
+              color: '#e4e4e7',
+              boxShadow: '0 12px 50px rgba(0,0,0,0.6)',
+              position: 'relative'
+            }}>
+              {/* Report Markdown Container */}
+              <div style={{ 
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'inherit'
+              }}>
+                {report}
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ 
+                marginTop: '32px', 
+                display: 'flex', 
+                gap: '12px', 
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                paddingTop: '24px'
+              }}>
+                <button
+                  onClick={() => navigator.clipboard.writeText(report)}
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid var(--surface-border)',
+                    color: 'var(--text)',
+                    borderRadius: '6px',
+                    padding: '8px 18px',
+                    fontSize: '12px',
+                    fontFamily: "'Geist Mono', monospace",
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                >
+                  COPY RAW MARKDOWN
+                </button>
+                <button
+                  onClick={() => { setStatus('idle'); setSteps([]); setReport(''); setQuery('') }}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'var(--muted)',
+                    borderRadius: '6px',
+                    padding: '8px 18px',
+                    fontSize: '12px',
+                    fontFamily: "'Geist Mono', monospace",
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                >
+                  NEW SESSION
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Failed State */}
+        {status === 'failed' && (
+          <div className="fade-in-item" style={{
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            background: 'rgba(239, 68, 68, 0.08)',
+            borderRadius: '8px',
+            padding: '20px',
+            color: '#fca5a5',
             fontSize: '14px',
-            lineHeight: 1.8,
-            color: 'var(--text)',
-            whiteSpace: 'pre-wrap',
+            boxShadow: '0 8px 30px rgba(239, 68, 68, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
           }}>
-            {report}
-          </div>
-          <div style={{ marginTop: '12px', display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+              <span>✗</span> Execution failed. Check server and browser logs for details.
+            </div>
             <button
-              onClick={() => navigator.clipboard.writeText(report)}
+              onClick={() => setStatus('idle')}
               style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                color: 'var(--muted)',
+                alignSelf: 'flex-start',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#e4e4e7',
+                padding: '6px 12px',
+                fontSize: '12px',
                 borderRadius: '4px',
-                padding: '6px 14px',
-                fontSize: '11px',
-                fontFamily: 'inherit',
                 cursor: 'pointer',
-                letterSpacing: '1px',
+                fontFamily: "'Geist Mono', monospace",
+                transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
             >
-              COPY REPORT
-            </button>
-            <button
-              onClick={() => { setStatus('idle'); setSteps([]); setReport(''); setQuery('') }}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                color: 'var(--muted)',
-                borderRadius: '4px',
-                padding: '6px 14px',
-                fontSize: '11px',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                letterSpacing: '1px',
-              }}
-            >
-              NEW RESEARCH
+              RETRY SESSION &rarr;
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* failed state */}
-      {status === 'failed' && (
-        <div style={{
-          border: '1px solid #ff4444',
-          borderRadius: '6px',
-          padding: '16px',
-          color: '#ff4444',
-          fontSize: '13px',
-        }}>
-          ✗ research failed — check console for details
-          <button
-            onClick={() => setStatus('idle')}
-            style={{
-              display: 'block',
-              marginTop: '8px',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--muted)',
-              fontSize: '12px',
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              padding: 0,
-            }}
-          >
-            try again →
-          </button>
-        </div>
-      )}
+      </main>
 
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        textarea::placeholder { color: var(--muted); }
-        textarea:disabled { opacity: 0.5; }
-      `}</style>
-    </main>
+      {/* Footer */}
+      <footer style={{
+        textAlign: 'center',
+        padding: '24px',
+        fontSize: '12px',
+        color: 'var(--muted)',
+        borderTop: '1px solid var(--surface-border)',
+        fontFamily: "'Geist Mono', monospace",
+        background: 'rgba(3, 3, 3, 0.4)'
+      }}>
+        ATLAS RESEARCH TERMINAL &bull; POWERED BY DEEPAGENTS + TAVILY
+      </footer>
+    </div>
   )
 }
