@@ -98,6 +98,7 @@ async function runAgent(sessionId: string, query: string, supabase: any) {
                             // ignore
                         }
                         await addStep('searching', `Searched: ${queryVal}`)
+                        await addStep('synthesizing', `Analyzing search results for "${queryVal}"...`)
                     }
                 }
             }
