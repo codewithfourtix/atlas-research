@@ -9,13 +9,20 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@langchain/openai": "^1.4.7",
+    "@langchain/tavily": "^1.2.0",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "deepagents": "^1.10.2",
+    "langchain": "^1.4.4",
     "next": "16.2.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
